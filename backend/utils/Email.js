@@ -14,7 +14,7 @@ const sendEmail = async (options) => {
   if (process.env.NODE_ENV === "production") {
     // Modify mailOptions for production environment
     mailOptions.from = {
-      name: "Homly hub",
+      name: "Deployment",
       email: process.env.SENDGRID_EMAIL,
     };
     // Send email using SendGrid
