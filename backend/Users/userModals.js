@@ -30,11 +30,6 @@ const userSchema = new mongoose.Schema(
       },
       message: "password are not same !",
     },
-    phoneNumber: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     avatar: {
       url: { type: String },
       public_id: { type: String },

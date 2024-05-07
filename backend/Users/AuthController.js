@@ -39,7 +39,6 @@ exports.signup = async (req, res) => {
     const newUser = await User.create({
       name: req.body.name,
       email: req.body.email,
-      phoneNumber: req.body.phoneNumber,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
       avatar: { url: req.body.avatar || defaultAvatarUrl },
@@ -200,10 +199,38 @@ exports.protect = async (req, res, next) => {
   }
 };
 
-exports.getUserLogins = async (req, res, next) => {
-  const currentUser = await User.findById(req.user);
-  res.status(200).json({
-    status: "success",
-    user: currentUser,
-  });
+exports.isLoggedIn = async (req, res, next) => {
+  // 1) Getting the Token and check if it there
+  try {
+    console.log(req.cookies);
+    if (req.cookies.jwt) {
+      // Verfy the token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      // 2) Check if users still exsits
+
+      const currentUser = await User.findById(decoded.id);
+      console.log("from login", currentUser);
+      if (!currentUser) {
+        return next();
+      }
+
+      // 3) Check If user change Password after the token is issued
+
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+      // There is a looged in user
+      res.status(200).json({
+        status: "success",
+        user: currentUser,
+      });
+      return next();
+    }
+  } catch (err) {
+    return next();
+  }
 };

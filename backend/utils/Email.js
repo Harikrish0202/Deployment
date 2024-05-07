@@ -3,7 +3,15 @@ const sendGridMail = require("@sendgrid/mail");
 sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendEmail = async (options) => {
-  // 1) Create a transporter
+  // Define mailOptions
+  let mailOptions = {
+    from: process.env.EMAIL_FROM, // Use EMAIL_FROM for sender email
+    to: options.email,
+    subject: options.subject,
+    html: options.message,
+  };
+
+  // Create a transporter
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
@@ -12,19 +20,15 @@ const sendEmail = async (options) => {
       pass: process.env.EMAIL_PASSWORD,
     },
   });
+
+  // Send email using transporter
   await transporter.sendMail(mailOptions);
 
-  let mailOptions = {
-    from: process.env.EMAIL_FROM,
-    to: options.email,
-    subject: options.subject,
-    html: options.message,
-  };
-
   if (process.env.NODE_ENV === "production") {
+    // Modify mailOptions for production environment
     mailOptions.from = {
       name: "Homly hub",
-      email: process.env.SENDGRID_EMAIL,
+      email: process.env.EMAIL_FROM, // Use EMAIL_FROM for sender email
     };
     try {
       await sendGridMail.send(mailOptions);
@@ -33,7 +37,6 @@ const sendEmail = async (options) => {
       console.error("Error sending email:", error);
     }
   }
-  // Sending the email.
 };
 
 module.exports = sendEmail;
